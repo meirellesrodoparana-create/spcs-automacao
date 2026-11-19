@@ -86,3 +86,76 @@ export async function listarComissionamentosAbertos(): Promise<ComissionamentoCo
   if (error) throw error;
   return (data ?? []) as unknown as ComissionamentoComSubestacao[];
 }
+
+// Usado pelo Painel de Gestão (coordenador/admin) — ao contrário de
+// listarComissionamentosAbertos, traz TODOS os status (inclusive já
+// liberados) de TODOS os técnicos, já que o RLS hoje é compartilhado
+// entre a equipe inteira (não há coluna de "dono" do comissionamento).
+export async function listarTodosComissionamentos(): Promise<ComissionamentoComSubestacao[]> {
+  const { data, error } = await supabase
+    .from('comissionamentos')
+    .select('*, subestacoes(nome, sigla, distribuidoras(sigla))')
+    .order('criado_em', { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return (data ?? []) as unknown as ComissionamentoComSubestacao[];
+}
+
+export interface EquipamentoComTipo {
+  id: string;
+  codigo_operacional: string | null;
+  fabricante: string | null;
+  modelo: string | null;
+  numero_serie: string | null;
+  atualizado_em: string;
+  tipos_equipamento: { descricao: string } | null;
+}
+
+export async function listarEquipamentosDaSubestacao(subestacaoId: string): Promise<EquipamentoComTipo[]> {
+  const { data, error } = await supabase
+    .from('equipamentos')
+    .select('id, codigo_operacional, fabricante, modelo, numero_serie, atualizado_em, tipos_equipamento(descricao)')
+    .eq('subestacao_id', subestacaoId)
+    .order('atualizado_em', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as EquipamentoComTipo[];
+}
+
+export interface ResumoComissionamento {
+  checklistPreenchidos: number;
+  paelPreenchidas: number;
+  liberacao: { numeroLpe: string; data: string } | null;
+}
+
+// Contagens simples (não tenta inferir o total aplicável por tipo de
+// equipamento, só quantos itens/etapas já têm algum registro) — dá pra
+// ver de relance se o documento já foi começado, sem abrir a tela.
+export async function obterResumoComissionamento(comissionamentoId: string): Promise<ResumoComissionamento> {
+  const [checklistRes, paelRes, liberacaoRes] = await Promise.all([
+    supabase
+      .from('checklist_itens_execucao')
+      .select('id', { count: 'exact', head: true })
+      .eq('comissionamento_id', comissionamentoId)
+      .not('status', 'is', null),
+    supabase
+      .from('pael_etapas_execucao')
+      .select('id', { count: 'exact', head: true })
+      .eq('comissionamento_id', comissionamentoId)
+      .not('realizado', 'is', null),
+    supabase
+      .from('liberacoes')
+      .select('numero_lpe, data')
+      .eq('comissionamento_id', comissionamentoId)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (checklistRes.error) throw checklistRes.error;
+  if (paelRes.error) throw paelRes.error;
+  if (liberacaoRes.error) throw liberacaoRes.error;
+  return {
+    checklistPreenchidos: checklistRes.count ?? 0,
+    paelPreenchidas: paelRes.count ?? 0,
+    liberacao: liberacaoRes.data ? { numeroLpe: liberacaoRes.data.numero_lpe, data: liberacaoRes.data.data } : null,
+  };
+}
