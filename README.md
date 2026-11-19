@@ -56,8 +56,12 @@ supabase/migrations/       schema SQL
 
 ## Pontos em aberto
 
-- Itens de checklist/PAEL por tipo de equipamento (ex.: Banco de Capacitor)
-  ainda não foram detalhados item a item para todos os tipos.
+- Aba "TESTES SINALIZAÇÃO" do retificador (20 pontos ponto a ponto) — não modelada.
 - Papéis de usuário além de técnico/coordenador/admin.
 - Fluxo de assinatura na Liberação: assinatura digital no app ou só
   nome/matrícula/data?
+
+Os itens de checklist e as etapas de PAEL já foram detalhados linha a linha
+a partir dos documentos reais — ver `supabase/migrations/0003_checklist_pael_reais.sql`
+e a seção "Atualização (19/11/2026)" em `claude/mapeamento-documentos-origem.md`
+no projeto do Claude.
