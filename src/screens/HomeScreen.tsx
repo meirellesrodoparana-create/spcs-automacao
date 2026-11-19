@@ -4,14 +4,12 @@ import type { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// Ponto de entrada: escolher a subestação/equipamento em andamento e
-// navegar para um dos 4 documentos. Por enquanto só os atalhos —
-// a seleção de comissionamento vem depois que o Cadastro existir.
-const ITENS: { label: string; screen: keyof RootStackParamList }[] = [
+// Ponto de entrada: Cadastro de Automação é independente; Checklist, PAEL e
+// Liberação exigem um comissionamento aberto, então passam pela tela de
+// seleção/criação de comissionamento antes de chegar lá.
+const ITENS: { label: string; screen: 'Cadastro' | 'Comissionamento' }[] = [
   { label: 'Cadastro de Automação', screen: 'Cadastro' },
-  { label: 'Checklist', screen: 'Checklist' },
-  { label: 'PAEL (Painel)', screen: 'Pael' },
-  { label: 'Liberação para Energização', screen: 'Liberacao' },
+  { label: 'Comissionamentos (Checklist / PAEL / Liberação)', screen: 'Comissionamento' },
 ];
 
 export default function HomeScreen({ navigation }: Props) {

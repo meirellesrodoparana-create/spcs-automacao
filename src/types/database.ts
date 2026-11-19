@@ -89,6 +89,35 @@ export interface Comissionamento {
   houve_atraso: boolean;
   motivo_atraso: string | null;
   status: StatusComissionamento;
+  criado_em: string;
+}
+
+export interface ChecklistGrupo {
+  id: string;
+  nome: string;
+  ordem: number;
+}
+
+export interface ChecklistItemTemplate {
+  id: string;
+  grupo_id: string;
+  descricao: string;
+  ordem: number;
+  aplica_a_tipos: string[];
+}
+
+export interface PaelDisciplina {
+  id: string;
+  nome: string;
+  ordem: number;
+}
+
+export interface PaelEtapaTemplate {
+  id: string;
+  disciplina_id: string;
+  descricao: string;
+  ordem: number;
+  aplica_a_tipos: string[];
 }
 
 export interface ChecklistItemExecucao {

@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './src/navigation/types';
 import HomeScreen from './src/screens/HomeScreen';
 import CadastroScreen from './src/screens/CadastroScreen';
+import ComissionamentoScreen from './src/screens/ComissionamentoScreen';
+import ComissionamentoDetalheScreen from './src/screens/ComissionamentoDetalheScreen';
 import ChecklistScreen from './src/screens/ChecklistScreen';
 import PaelScreen from './src/screens/PaelScreen';
 import LiberacaoScreen from './src/screens/LiberacaoScreen';
@@ -17,6 +19,12 @@ export default function App() {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'SPCS - Automação' }} />
         <Stack.Screen name="Cadastro" component={CadastroScreen} options={{ title: 'Cadastro de Automação' }} />
+        <Stack.Screen name="Comissionamento" component={ComissionamentoScreen} options={{ title: 'Comissionamentos' }} />
+        <Stack.Screen
+          name="ComissionamentoDetalhe"
+          component={ComissionamentoDetalheScreen}
+          options={{ title: 'Comissionamento' }}
+        />
         <Stack.Screen name="Checklist" component={ChecklistScreen} options={{ title: 'Checklist' }} />
         <Stack.Screen name="Pael" component={PaelScreen} options={{ title: 'PAEL' }} />
         <Stack.Screen name="Liberacao" component={LiberacaoScreen} options={{ title: 'Liberação para Energização' }} />
