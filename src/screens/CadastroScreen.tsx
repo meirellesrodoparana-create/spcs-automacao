@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, ScrollView, Pressable, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseConfigurado } from '../lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cadastro'>;
 
@@ -38,6 +38,14 @@ export default function CadastroScreen(_props: Props) {
   }
 
   async function salvar() {
+    if (!supabaseConfigurado) {
+      Alert.alert(
+        'Supabase ainda não configurado',
+        'Preencha EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY no .env (ver .env.example) ' +
+          'depois que o projeto Supabase existir. Por enquanto só é possível navegar pelas telas.'
+      );
+      return;
+    }
     setSalvando(true);
     try {
       // TODO: trocar subestacao_id/tipo_equipamento_id fixos por seleção
