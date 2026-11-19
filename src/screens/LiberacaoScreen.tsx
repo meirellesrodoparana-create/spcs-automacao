@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Alert, Switch } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Switch } from 'react-native';
+import { alertar } from '../lib/alerta';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -45,7 +46,7 @@ export default function LiberacaoScreen({ route }: Props) {
         setResponsavelCoordenacao(liberacao.responsavel_coordenacao ?? '');
       }
     } catch (err) {
-      Alert.alert('Erro ao carregar liberação', err instanceof Error ? err.message : String(err));
+      alertar('Erro ao carregar liberação', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }
@@ -59,7 +60,7 @@ export default function LiberacaoScreen({ route }: Props) {
 
   async function salvar() {
     if (!numeroLpe.trim()) {
-      Alert.alert('Informe o número da LPE');
+      alertar('Informe o número da LPE');
       return;
     }
     setSalvando(true);
@@ -92,9 +93,9 @@ export default function LiberacaoScreen({ route }: Props) {
         .eq('id', comissionamentoId);
       if (erroStatus) throw erroStatus;
 
-      Alert.alert('Liberação salva', 'A LPE foi registrada e o comissionamento marcado como liberado.');
+      alertar('Liberação salva', 'A LPE foi registrada e o comissionamento marcado como liberado.');
     } catch (err) {
-      Alert.alert('Não foi possível salvar', err instanceof Error ? err.message : String(err));
+      alertar('Não foi possível salvar', err instanceof Error ? err.message : String(err));
     } finally {
       setSalvando(false);
     }

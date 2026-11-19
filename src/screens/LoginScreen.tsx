@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { alertar } from '../lib/alerta';
 import { supabase, supabaseConfigurado } from '../lib/supabase';
 
 // Tela única de entrada: login para quem já tem conta, cadastro para quem
@@ -15,7 +16,7 @@ export default function LoginScreen() {
 
   async function entrar() {
     if (!email.trim() || !senha) {
-      Alert.alert('Preencha e-mail e senha');
+      alertar('Preencha e-mail e senha');
       return;
     }
     setCarregando(true);
@@ -26,7 +27,7 @@ export default function LoginScreen() {
       });
       if (error) throw error;
     } catch (err) {
-      Alert.alert('Não foi possível entrar', err instanceof Error ? err.message : String(err));
+      alertar('Não foi possível entrar', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }
@@ -34,11 +35,11 @@ export default function LoginScreen() {
 
   async function cadastrar() {
     if (!email.trim() || !senha || !nome.trim()) {
-      Alert.alert('Preencha nome, e-mail e senha');
+      alertar('Preencha nome, e-mail e senha');
       return;
     }
     if (senha.length < 6) {
-      Alert.alert('A senha precisa ter pelo menos 6 caracteres');
+      alertar('A senha precisa ter pelo menos 6 caracteres');
       return;
     }
     setCarregando(true);
@@ -57,14 +58,14 @@ export default function LoginScreen() {
       }
 
       if (!data.session) {
-        Alert.alert(
+        alertar(
           'Conta criada',
           'Verifique seu e-mail para confirmar o cadastro antes de entrar (dependendo da configuração do projeto).'
         );
         setModo('entrar');
       }
     } catch (err) {
-      Alert.alert('Não foi possível cadastrar', err instanceof Error ? err.message : String(err));
+      alertar('Não foi possível cadastrar', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }

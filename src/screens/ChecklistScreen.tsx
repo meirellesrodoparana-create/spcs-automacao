@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { alertar } from '../lib/alerta';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -48,7 +49,7 @@ export default function ChecklistScreen({ route }: Props) {
       setGrupos((gruposData ?? []) as ChecklistGrupo[]);
       setItensPorGrupo(porGrupo);
     } catch (err) {
-      Alert.alert('Erro ao carregar checklist', err instanceof Error ? err.message : String(err));
+      alertar('Erro ao carregar checklist', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }
@@ -76,7 +77,7 @@ export default function ChecklistScreen({ route }: Props) {
         );
       if (error) throw error;
     } catch (err) {
-      Alert.alert('Não foi possível salvar', err instanceof Error ? err.message : String(err));
+      alertar('Não foi possível salvar', err instanceof Error ? err.message : String(err));
     } finally {
       setSalvandoId(null);
     }

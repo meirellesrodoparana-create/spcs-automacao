@@ -51,6 +51,12 @@ export default function ComissionamentoDetalheScreen({ route, navigation }: Prop
 
       <Pressable
         style={styles.botao}
+        onPress={() => navigation.navigate('Cadastro', { comissionamentoId })}
+      >
+        <Text style={styles.botaoTexto}>Cadastro de Automação</Text>
+      </Pressable>
+      <Pressable
+        style={styles.botao}
         onPress={() => navigation.navigate('Checklist', { comissionamentoId })}
       >
         <Text style={styles.botaoTexto}>Checklist</Text>

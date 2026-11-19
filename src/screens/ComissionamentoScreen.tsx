@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, Pressable } from 'react-native';
+import { alertar } from '../lib/alerta';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -25,7 +26,7 @@ export default function ComissionamentoScreen({ navigation }: Props) {
     try {
       setAbertos(await listarComissionamentosAbertos());
     } catch (err) {
-      Alert.alert('Erro ao carregar', err instanceof Error ? err.message : String(err));
+      alertar('Erro ao carregar', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }
@@ -39,11 +40,11 @@ export default function ComissionamentoScreen({ navigation }: Props) {
 
   async function criar() {
     if (!supabaseConfigurado) {
-      Alert.alert('Supabase não configurado', 'Preencha o .env antes de criar um comissionamento.');
+      alertar('Supabase não configurado', 'Preencha o .env antes de criar um comissionamento.');
       return;
     }
     if (!distribuidoraSigla || !subestacaoSigla) {
-      Alert.alert('Faltam dados', 'Informe ao menos a distribuidora e a sigla da subestação.');
+      alertar('Faltam dados', 'Informe ao menos a distribuidora e a sigla da subestação.');
       return;
     }
     setCriando(true);
@@ -57,7 +58,7 @@ export default function ComissionamentoScreen({ navigation }: Props) {
       });
       navigation.navigate('ComissionamentoDetalhe', { comissionamentoId: id });
     } catch (err) {
-      Alert.alert('Erro ao criar', err instanceof Error ? err.message : String(err));
+      alertar('Erro ao criar', err instanceof Error ? err.message : String(err));
     } finally {
       setCriando(false);
     }

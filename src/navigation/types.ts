@@ -1,6 +1,6 @@
 export type RootStackParamList = {
   Home: undefined;
-  Cadastro: { equipamentoId?: string } | undefined;
+  Cadastro: { comissionamentoId: string; equipamentoId?: string };
   Comissionamento: undefined;
   ComissionamentoDetalhe: { comissionamentoId: string };
   Checklist: { comissionamentoId: string };

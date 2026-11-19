@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, ActivityIndicator, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, ActivityIndicator, TextInput } from 'react-native';
+import { alertar } from '../lib/alerta';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -54,7 +55,7 @@ export default function PaelScreen({ route }: Props) {
       setDisciplinas((discData ?? []) as PaelDisciplina[]);
       setEtapasPorDisciplina(porDisciplina);
     } catch (err) {
-      Alert.alert('Erro ao carregar PAEL', err instanceof Error ? err.message : String(err));
+      alertar('Erro ao carregar PAEL', err instanceof Error ? err.message : String(err));
     } finally {
       setCarregando(false);
     }
@@ -89,7 +90,7 @@ export default function PaelScreen({ route }: Props) {
       );
       if (error) throw error;
     } catch (err) {
-      Alert.alert('Não foi possível salvar', err instanceof Error ? err.message : String(err));
+      alertar('Não foi possível salvar', err instanceof Error ? err.message : String(err));
     }
   }
 

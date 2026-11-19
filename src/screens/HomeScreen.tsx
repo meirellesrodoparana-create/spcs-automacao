@@ -5,12 +5,12 @@ import { supabase } from '../lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// Ponto de entrada: Cadastro de Automação é independente; Checklist, PAEL e
-// Liberação exigem um comissionamento aberto, então passam pela tela de
-// seleção/criação de comissionamento antes de chegar lá.
-const ITENS: { label: string; screen: 'Cadastro' | 'Comissionamento' }[] = [
-  { label: 'Cadastro de Automação', screen: 'Cadastro' },
-  { label: 'Comissionamentos (Checklist / PAEL / Liberação)', screen: 'Comissionamento' },
+// Ponto de entrada único: Cadastro de Automação, Checklist, PAEL e
+// Liberação exigem um comissionamento aberto (o equipamento cadastrado
+// fica vinculado à subestação dele), então tudo passa pela tela de
+// seleção/criação de comissionamento.
+const ITENS: { label: string; screen: 'Comissionamento' }[] = [
+  { label: 'Comissionamentos (Cadastro / Checklist / PAEL / Liberação)', screen: 'Comissionamento' },
 ];
 
 export default function HomeScreen({ navigation }: Props) {
