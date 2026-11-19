@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { supabase } from '../lib/supabase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -27,6 +28,10 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.botaoTexto}>{item.label}</Text>
         </Pressable>
       ))}
+
+      <Pressable style={styles.botaoSair} onPress={() => supabase.auth.signOut()}>
+        <Text style={styles.botaoSairTexto}>Sair</Text>
+      </Pressable>
     </View>
   );
 }
@@ -37,4 +42,6 @@ const styles = StyleSheet.create({
   subtitulo: { fontSize: 14, color: '#666', marginBottom: 24 },
   botao: { backgroundColor: '#0B5FFF', borderRadius: 10, paddingVertical: 16, alignItems: 'center' },
   botaoTexto: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  botaoSair: { marginTop: 24, paddingVertical: 10, alignItems: 'center' },
+  botaoSairTexto: { color: '#B00020', fontWeight: '600', fontSize: 14 },
 });
