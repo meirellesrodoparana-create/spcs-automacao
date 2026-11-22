@@ -1,0 +1,54 @@
+{
+  "name": "spcs-automacao-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SPCS - Automação — app desktop (Windows) que embute o build web do app de comissionamento de campo da Prolux",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "rimraf web && mkdir -p web && cp -r ../dist/. web/",
+    "build:win": "npm run prebuild && electron-builder --win --publish never",
+    "publicar": "node scripts/publicar-release.js"
+  },
+  "build": {
+    "appId": "br.com.prolux.spcsautomacao",
+    "productName": "SPCS - Automação",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "web/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "SPCS-Automacao-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "differentialPackage": false
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://qpalyufeldkqculnixrn.supabase.co/storage/v1/object/public/releases",
+        "channel": "latest"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "rimraf": "^6.1.4"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.11"
+  }
+}

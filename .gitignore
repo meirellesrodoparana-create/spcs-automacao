@@ -40,3 +40,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# App desktop (Electron) — gerado pelo workflow do GitHub Actions
+desktop/node_modules/
+desktop/web/
+desktop/release/
