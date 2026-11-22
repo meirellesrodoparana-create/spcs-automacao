@@ -1,7 +1,73 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const http = require('http');
+const fs = require('fs');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
+
+const TIPOS_MIME = {
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.map': 'application/json',
+  '.wasm': 'application/wasm',
+};
+
+// O build web do Expo usa caminhos absolutos (ex: "/_expo/static/..."),
+// que não funcionam abrindo o arquivo direto do disco (file://). Por
+// isso servimos a pasta "web" num servidor HTTP local (só acessível
+// nesta máquina) e carregamos a página a partir dele.
+function iniciarServidorLocal(pastaWeb) {
+  return new Promise((resolve, reject) => {
+    const servidor = http.createServer((req, res) => {
+      const urlLimpa = decodeURIComponent((req.url || '/').split('?')[0]);
+      let caminhoArquivo = path.join(pastaWeb, urlLimpa);
+
+      if (!caminhoArquivo.startsWith(pastaWeb)) {
+        res.writeHead(403);
+        return res.end();
+      }
+
+      fs.stat(caminhoArquivo, (erro, info) => {
+        if (!erro && info.isDirectory()) {
+          caminhoArquivo = path.join(caminhoArquivo, 'index.html');
+        }
+        fs.readFile(caminhoArquivo, (erroLeitura, conteudo) => {
+          if (erroLeitura) {
+            // Rota desconhecida (navegação client-side) → devolve o
+            // index.html, igual um servidor de SPA faria.
+            return fs.readFile(path.join(pastaWeb, 'index.html'), (erro2, indexConteudo) => {
+              if (erro2) {
+                res.writeHead(404);
+                return res.end();
+              }
+              res.writeHead(200, { 'Content-Type': 'text/html' });
+              res.end(indexConteudo);
+            });
+          }
+          const ext = path.extname(caminhoArquivo).toLowerCase();
+          res.writeHead(200, { 'Content-Type': TIPOS_MIME[ext] || 'application/octet-stream' });
+          res.end(conteudo);
+        });
+      });
+    });
+
+    servidor.listen(0, '127.0.0.1', () => {
+      resolve(servidor.address().port);
+    });
+    servidor.on('error', reject);
+  });
+}
 
 autoUpdater.logger = log;
 log.transports.file.level = 'info';
@@ -14,7 +80,7 @@ function enviarStatus(mensagem) {
   if (janelaPrincipal) janelaPrincipal.webContents.send('status-atualizacao', mensagem);
 }
 
-function criarJanela() {
+async function criarJanela() {
   janelaPrincipal = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -26,7 +92,8 @@ function criarJanela() {
     },
   });
 
-  janelaPrincipal.loadFile(path.join(__dirname, 'web', 'index.html'));
+  const porta = await iniciarServidorLocal(path.join(__dirname, 'web'));
+  janelaPrincipal.loadURL(`http://127.0.0.1:${porta}/`);
   janelaPrincipal.setMenuBarVisibility(false);
 }
 
