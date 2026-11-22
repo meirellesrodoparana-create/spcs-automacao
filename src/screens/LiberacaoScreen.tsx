@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { supabase } from '../lib/supabase';
+import { escaparHtml, imprimirOuCompartilharPdf, montarHtmlDocumento } from '../lib/pdf';
 import type { Liberacao, TipoLiberacao } from '../types/database';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Liberacao'>;
@@ -13,6 +14,7 @@ export default function LiberacaoScreen({ route }: Props) {
   const { comissionamentoId } = route.params;
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [imprimindo, setImprimindo] = useState(false);
   const [registroId, setRegistroId] = useState<string | null>(null);
 
   const [numeroLpe, setNumeroLpe] = useState('');
@@ -101,6 +103,28 @@ export default function LiberacaoScreen({ route }: Props) {
     }
   }
 
+  async function imprimir() {
+    setImprimindo(true);
+    try {
+      const corpo = `<table>
+        <tr><th>Número da LPE</th><td>${escaparHtml(numeroLpe)}</td></tr>
+        <tr><th>Tipo</th><td>${tipo === 'total' ? 'Total' : 'Parcial'}</td></tr>
+        <tr><th>Gerência responsável</th><td>${escaparHtml(gerencia) || '—'}</td></tr>
+        <tr><th>Proteção liberada</th><td>${protecaoLiberada ? 'Sim' : 'Não'}</td></tr>
+        <tr><th>Medição liberada</th><td>${medicaoLiberada ? 'Sim' : 'Não'}</td></tr>
+        <tr><th>Comunicação liberada</th><td>${comunicacaoLiberada ? 'Sim' : 'Não'}</td></tr>
+        <tr><th>Não conformidades</th><td>${escaparHtml(naoConformidades) || '—'}</td></tr>
+        <tr><th>Responsável pela coordenação</th><td>${escaparHtml(responsavelCoordenacao) || '—'}</td></tr>
+      </table>`;
+      const html = montarHtmlDocumento('Liberação (LPE)', numeroLpe || 'Comissionamento', corpo);
+      await imprimirOuCompartilharPdf(html, 'Liberação');
+    } catch (err) {
+      alertar('Não foi possível gerar o PDF', err instanceof Error ? err.message : String(err));
+    } finally {
+      setImprimindo(false);
+    }
+  }
+
   if (carregando) {
     return (
       <View style={styles.loading}>
@@ -111,6 +135,11 @@ export default function LiberacaoScreen({ route }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.cabecalho}>
+        <Pressable onPress={imprimir} disabled={imprimindo}>
+          <Text style={styles.linkImprimir}>{imprimindo ? 'Gerando...' : '🖨️ Imprimir / PDF'}</Text>
+        </Pressable>
+      </View>
       <Text style={styles.label}>Número da LPE</Text>
       <TextInput style={styles.input} value={numeroLpe} onChangeText={setNumeroLpe} placeholder="Ex: LPE-2026-0123" />
 
@@ -167,6 +196,8 @@ export default function LiberacaoScreen({ route }: Props) {
 const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { padding: 16, paddingBottom: 48 },
+  cabecalho: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 },
+  linkImprimir: { color: '#0B5FFF', fontWeight: '600', fontSize: 13 },
   label: { fontSize: 13, fontWeight: '600', marginTop: 14, marginBottom: 6, color: '#333' },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: '#fff' },
   textArea: { minHeight: 80, textAlignVertical: 'top' },

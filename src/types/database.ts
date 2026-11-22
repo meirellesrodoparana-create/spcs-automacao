@@ -51,6 +51,7 @@ export interface Equipamento {
   ano_fabricacao: number | null;
   data_energizacao: string | null;
   campos_especificos: Record<string, unknown>;
+  aplicacao_dnp3_id: string | null;
   atualizado_em: string;
 }
 

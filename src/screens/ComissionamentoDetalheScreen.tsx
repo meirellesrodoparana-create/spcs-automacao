@@ -11,6 +11,7 @@ import {
   type EquipamentoComTipo,
   type ResumoComissionamento,
 } from '../lib/comissionamento';
+import { escaparHtml, imprimirOuCompartilharPdf, montarHtmlDocumento } from '../lib/pdf';
 import type { Comissionamento } from '../types/database';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ComissionamentoDetalhe'>;
@@ -21,6 +22,7 @@ export default function ComissionamentoDetalheScreen({ route, navigation }: Prop
   const [equipamentos, setEquipamentos] = useState<EquipamentoComTipo[]>([]);
   const [resumo, setResumo] = useState<ResumoComissionamento | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [imprimindo, setImprimindo] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,6 +58,34 @@ export default function ComissionamentoDetalheScreen({ route, navigation }: Prop
     }, [comissionamentoId])
   );
 
+  async function imprimirListaEquipamentos() {
+    setImprimindo(true);
+    try {
+      const linhas = equipamentos
+        .map(
+          (eq) => `<tr>
+            <td>${escaparHtml(eq.tipos_equipamento?.descricao ?? '')}</td>
+            <td>${escaparHtml(eq.codigo_operacional)}</td>
+            <td>${escaparHtml(eq.fabricante)}</td>
+            <td>${escaparHtml(eq.modelo)}</td>
+            <td>${escaparHtml(eq.numero_serie)}</td>
+          </tr>`
+        )
+        .join('');
+      const corpo = `<table><thead><tr><th>Tipo</th><th>Código Operacional</th><th>Fabricante</th><th>Modelo</th><th>Nº Série</th></tr></thead><tbody>${linhas}</tbody></table>`;
+      const html = montarHtmlDocumento(
+        'Cadastro de Automação — Equipamentos',
+        `${comissionamento?.codigo_operacional ?? 'Comissionamento'}`,
+        corpo
+      );
+      await imprimirOuCompartilharPdf(html, 'Cadastro de Automação');
+    } catch (err) {
+      alertar('Não foi possível gerar o PDF', err instanceof Error ? err.message : String(err));
+    } finally {
+      setImprimindo(false);
+    }
+  }
+
   if (carregando) {
     return (
       <View style={styles.loading}>
@@ -75,7 +105,7 @@ export default function ComissionamentoDetalheScreen({ route, navigation }: Prop
         style={styles.botao}
         onPress={() => navigation.navigate('Cadastro', { comissionamentoId })}
       >
-        <Text style={styles.botaoTexto}>Cadastro de Automação</Text>
+        <Text style={styles.botaoTexto}>Cadastro de Automação (novo equipamento)</Text>
       </Pressable>
       <Pressable
         style={styles.botao}
@@ -99,19 +129,37 @@ export default function ComissionamentoDetalheScreen({ route, navigation }: Prop
           {resumo?.liberacao ? ` — LPE ${resumo.liberacao.numeroLpe}` : ' (ainda não emitida)'}
         </Text>
       </Pressable>
+      <Pressable
+        style={[styles.botao, styles.botaoSecundario]}
+        onPress={() => navigation.navigate('ConferenciaDnp3', { comissionamentoId })}
+      >
+        <Text style={styles.botaoTexto}>Conferência DNP3 (log de eventos x mapa de pontos)</Text>
+      </Pressable>
 
-      <Text style={styles.secaoTitulo}>Equipamentos cadastrados nesta subestação</Text>
+      <View style={styles.secaoCabecalho}>
+        <Text style={styles.secaoTitulo}>Equipamentos cadastrados nesta subestação</Text>
+        {equipamentos.length > 0 && (
+          <Pressable onPress={imprimirListaEquipamentos} disabled={imprimindo}>
+            <Text style={styles.linkImprimir}>{imprimindo ? 'Gerando...' : '🖨️ Imprimir / PDF'}</Text>
+          </Pressable>
+        )}
+      </View>
       {equipamentos.length === 0 && (
         <Text style={styles.textoVazio}>Nenhum equipamento cadastrado ainda — use "Cadastro de Automação" acima.</Text>
       )}
       {equipamentos.map((eq) => (
-        <View key={eq.id} style={styles.cartaoEquipamento}>
+        <Pressable
+          key={eq.id}
+          style={styles.cartaoEquipamento}
+          onPress={() => navigation.navigate('Cadastro', { comissionamentoId, equipamentoId: eq.id })}
+        >
           <Text style={styles.equipamentoTipo}>{eq.tipos_equipamento?.descricao ?? 'Equipamento'}</Text>
           <Text style={styles.equipamentoDetalhe}>
             {[eq.codigo_operacional, eq.fabricante, eq.modelo].filter(Boolean).join(' · ') || 'Sem detalhes preenchidos'}
           </Text>
           {eq.numero_serie && <Text style={styles.equipamentoDetalheSecundario}>Nº série: {eq.numero_serie}</Text>}
-        </View>
+          <Text style={styles.toqueParaEditar}>Toque para ver/editar</Text>
+        </Pressable>
       ))}
     </ScrollView>
   );
@@ -123,11 +171,15 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 22, fontWeight: '700' },
   subtitulo: { fontSize: 14, color: '#666', marginBottom: 20 },
   botao: { backgroundColor: '#0B5FFF', borderRadius: 10, paddingVertical: 16, alignItems: 'center' },
+  botaoSecundario: { backgroundColor: '#3D4A5C' },
   botaoTexto: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  secaoTitulo: { fontSize: 16, fontWeight: '700', marginTop: 28, marginBottom: 10 },
+  secaoCabecalho: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, marginBottom: 10 },
+  secaoTitulo: { fontSize: 16, fontWeight: '700' },
+  linkImprimir: { color: '#0B5FFF', fontWeight: '600', fontSize: 13 },
   textoVazio: { color: '#777', fontSize: 13 },
   cartaoEquipamento: { backgroundColor: '#F7F7F9', borderRadius: 10, padding: 12, marginBottom: 8 },
   equipamentoTipo: { fontWeight: '700', fontSize: 14 },
   equipamentoDetalhe: { color: '#444', fontSize: 13, marginTop: 2 },
   equipamentoDetalheSecundario: { color: '#888', fontSize: 12, marginTop: 2 },
+  toqueParaEditar: { color: '#0B5FFF', fontSize: 11, marginTop: 6, fontWeight: '600' },
 });

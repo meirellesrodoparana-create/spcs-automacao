@@ -6,5 +6,6 @@ export type RootStackParamList = {
   Checklist: { comissionamentoId: string };
   Pael: { comissionamentoId: string };
   Liberacao: { comissionamentoId: string };
+  ConferenciaDnp3: { comissionamentoId: string };
   PainelGestao: undefined;
 };

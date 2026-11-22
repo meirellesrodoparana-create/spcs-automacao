@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, Pressable, ActivityIndicator, TextInput } from 'react-native';
 import { alertar } from '../lib/alerta';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { supabase } from '../lib/supabase';
+import { escaparHtml, imprimirOuCompartilharPdf, montarHtmlDocumento } from '../lib/pdf';
 import type { PaelDisciplina, PaelEtapaTemplate, RealizadoPael } from '../types/database';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Pael'>;
@@ -22,6 +23,7 @@ export default function PaelScreen({ route }: Props) {
   const [disciplinas, setDisciplinas] = useState<PaelDisciplina[]>([]);
   const [etapasPorDisciplina, setEtapasPorDisciplina] = useState<Record<string, EtapaComExecucao[]>>({});
   const [carregando, setCarregando] = useState(true);
+  const [imprimindo, setImprimindo] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -94,6 +96,36 @@ export default function PaelScreen({ route }: Props) {
     }
   }
 
+  const todasAsEtapas = useMemo(() => Object.values(etapasPorDisciplina).flat(), [etapasPorDisciplina]);
+
+  async function imprimir() {
+    setImprimindo(true);
+    try {
+      const corpo = disciplinas
+        .map((disciplina) => {
+          const etapas = etapasPorDisciplina[disciplina.id] ?? [];
+          if (etapas.length === 0) return '';
+          const linhas = etapas
+            .map(
+              (etapa) => `<tr>
+                <td>${escaparHtml(etapa.descricao)}</td>
+                <td>${escaparHtml(etapa.realizado ?? '—')}</td>
+                <td>${escaparHtml(etapa.observacao)}</td>
+              </tr>`
+            )
+            .join('');
+          return `<h2>${escaparHtml(disciplina.nome)}</h2><table><thead><tr><th>Etapa</th><th>Realizado</th><th>Observação</th></tr></thead><tbody>${linhas}</tbody></table>`;
+        })
+        .join('');
+      const html = montarHtmlDocumento('PAEL', `${todasAsEtapas.length} etapa(s)`, corpo);
+      await imprimirOuCompartilharPdf(html, 'PAEL');
+    } catch (err) {
+      alertar('Não foi possível gerar o PDF', err instanceof Error ? err.message : String(err));
+    } finally {
+      setImprimindo(false);
+    }
+  }
+
   if (carregando) {
     return (
       <View style={styles.loading}>
@@ -104,6 +136,11 @@ export default function PaelScreen({ route }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.cabecalho}>
+        <Pressable onPress={imprimir} disabled={imprimindo}>
+          <Text style={styles.linkImprimir}>{imprimindo ? 'Gerando...' : '🖨️ Imprimir / PDF'}</Text>
+        </Pressable>
+      </View>
       {disciplinas.map((disciplina) => {
         const etapas = etapasPorDisciplina[disciplina.id] ?? [];
         if (etapas.length === 0) return null;
@@ -147,6 +184,8 @@ export default function PaelScreen({ route }: Props) {
 const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { padding: 16, paddingBottom: 48 },
+  cabecalho: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 12 },
+  linkImprimir: { color: '#0B5FFF', fontWeight: '600', fontSize: 13 },
   disciplina: { marginBottom: 20 },
   disciplinaTitulo: { fontSize: 16, fontWeight: '700', marginBottom: 8, color: '#0B5FFF' },
   etapa: { marginBottom: 12, backgroundColor: '#F7F8FA', borderRadius: 8, padding: 10 },

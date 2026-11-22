@@ -1,6 +1,6 @@
 {
   "name": "spcs-automacao-desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "SPCS - Automação — app desktop (Windows) que embute o build web do app de comissionamento de campo da Prolux",
   "main": "main.js",
