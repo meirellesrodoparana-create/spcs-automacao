@@ -6,8 +6,7 @@
   "main": "main.js",
   "scripts": {
     "prebuild": "rimraf web && mkdir -p web && cp -r ../dist/. web/",
-    "build:win": "npm run prebuild && electron-builder --win --publish never",
-    "publicar": "node scripts/publicar-release.js"
+    "build:win": "npm run prebuild && electron-builder --win --publish always"
   },
   "build": {
     "appId": "br.com.prolux.spcsautomacao",
@@ -35,9 +34,9 @@
     },
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://qpalyufeldkqculnixrn.supabase.co/storage/v1/object/public/releases",
-        "channel": "latest"
+        "provider": "github",
+        "owner": "meirellesrodoparana-create",
+        "repo": "spcs-automacao"
       }
     ]
   },
@@ -47,7 +46,6 @@
     "rimraf": "^6.1.4"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.119.2",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.11"
   }

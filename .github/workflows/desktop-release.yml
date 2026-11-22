@@ -11,6 +11,9 @@ on:
       - '.github/workflows/desktop-release.yml'
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -19,6 +22,9 @@ jobs:
       # fica embutida em qualquer build do app (web/mobile/desktop).
       EXPO_PUBLIC_SUPABASE_URL: https://qpalyufeldkqculnixrn.supabase.co
       EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwYWx5dWZlbGRrcWN1bG5peHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUxMDU3MTQsImV4cCI6MjExMDY4MTcxNH0.4CcSt4zl-eNTHhv98Pe5HnSfCErlwco20q_5Yecs4sI
+      # Token automático do Actions — usado só para criar a release no GitHub
+      # e subir o instalador nela (não precisa de nenhum segredo extra).
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,13 +42,9 @@ jobs:
         working-directory: desktop
         run: npm install
 
-      - name: Gerar instalador Windows (.exe)
+      - name: Gerar e publicar instalador Windows (.exe)
         working-directory: desktop
         run: npm run build:win
-
-      - name: Publicar instalador no Supabase Storage
-        working-directory: desktop
-        run: npm run publicar
 
       - name: Guardar instalador como artefato do workflow
         uses: actions/upload-artifact@v4
